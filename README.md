@@ -86,7 +86,3 @@ python -m unittest discover -s code/pca_kmeans -p "test_*.py" -v
 ```
 
 Tests use temporary synthetic data. They cover preprocessing and irregular-time rejection, 1D network dimensions and loss reductions, short training and deterministic resume, particle-ID alignment, and PCA preprocessing/cache consistency. They do not reproduce the full research training run.
-
-## Source provenance
-
-The main script and preprocessing test were copied from `k_auto_spec2`; the two comparison methods and tests came from `补充实验/1DCompare` and `补充实验/PCAandKMeans`. Repository preparation changes the main defaults to the requested values, replaces server-specific default paths with repository-relative paths, and points the preprocessing test at the report-weight script. Original experiment files are preserved outside this repository.
