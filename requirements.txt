@@ -1,0 +1,7 @@
+numpy
+scipy
+scikit-learn
+h5py
+matplotlib
+threadpoolctl
+torch

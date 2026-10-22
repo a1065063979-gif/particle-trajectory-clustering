@@ -179,3 +179,10 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+# Local research inputs and generated experiment artifacts
+/data/
+/results/
+/code/**/one_d_results/
+/code/**/pca_kmeans_results/
+/code/**/timeseries_cache/
+/code/**/spectrogram_cache/
