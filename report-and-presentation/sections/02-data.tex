@@ -1,0 +1,70 @@
+\section{Data and Problem Definition}\label{sec:data}
+
+\subsection{Data Source and Organization}
+
+This study uses the research project's PIC particle-tracking data to examine unsupervised clustering of multivariate particle trajectories. The dataset is stored in HDF5 format and includes records of particle position, momentum components, and electromagnetic field components for 12,800 particles across 6,010 recorded time points.
+
+The variables are arranged as two-dimensional arrays of size \(6010 \times 12800\), with the first dimension corresponding to time and the second to particles. A shared time array specifies the recording times, while particle identifiers associate the variables and clustering results with individual particles. Variable names, coordinate components, and numerical conventions follow those of the provided dataset.
+
+Each analysis sample consists of the multivariate time series for one particle over the entire recording interval. The same time indices are applied to all variables to ensure correspondence between the different channels. Particle identifiers are retained to track samples and link the outputs with the original records; they are not employed as input features or as predefined class labels.
+
+\subsection{Input Variables and Multichannel Representation}
+
+The previous study based its clustering inputs mainly on particle position and kinetic energy time series and suggested extending the workflow to include momentum and electromagnetic field information. The current study follows this approach by modifying the input representation to incorporate these additional particle data types~\cite{moreiraReport}.
+
+The main configuration uses six input channels: \(x\), \(p_x\), \(p_y\), \(E_x\), \(E_y\), and \(B_z\), as summarized in Table~\ref{tab:channels}. The available \(p_z\) component is not included in this configuration.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Input channels used for multivariate particle trajectory clustering.}\label{tab:channels}
+\begin{tabularx}{\linewidth}{@{}p{0.18\linewidth}p{0.1\linewidth}Y@{}}
+\toprule
+\textbf{Category} & \textbf{Variable} & \textbf{Description} \\
+\midrule
+Position & \(x\) & Particle position along the \(x\)-axis \\
+Momentum & \(p_x\) & \(x\)-component of particle momentum \\
+Momentum & \(p_y\) & \(y\)-component of particle momentum \\
+Electric field & \(E_x\) & Electric field component along \(x\), recorded along the particle trajectory \\
+Electric field & \(E_y\) & Electric field component along \(y\), recorded along the particle trajectory \\
+Magnetic field & \(B_z\) & Magnetic field component along \(z\), recorded along the particle trajectory \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Each channel contains the temporal evolution of a single variable, and together the six channels describe an individual particle during the recording interval. Since the variables differ in numerical scale, fluctuation amplitude, and temporal behavior, a common data-organization procedure and channel-specific standardization are required.
+
+Figure~\ref{fig:time-series} presents the standardized six-channel time series of the first five particles in the dataset. The same color identifies the same particle in every panel. These examples illustrate the input structure and temporal variation across channels; they are not selected as representatives of the resulting clusters.
+
+\begin{figure}[htbp]
+\centering
+\figureasset[\linewidth]{figures/time-series.png}{Standardized six-channel time series for five particles}
+\caption[Standardized six-channel time series for five particles]{Standardized six-channel time series for five example particles. The panels show \(x\), \(p_x\), \(p_y\), \(E_x\), \(E_y\), and \(B_z\) for the first five particles in the dataset. Particle indices 0--4 correspond to identifiers 1--5, and the same color denotes the same particle across all panels. Each channel is standardized using its mean and standard deviation across all particles and selected time points. The horizontal axis gives the sample index after fixed-stride subsampling, yielding 2,004 points separated by 1200 in the dataset's recorded time convention.}\label{fig:time-series}
+\end{figure}
+
+\subsection{Uniform Temporal Sampling and Standardization}
+
+The original time array extends from 0 to 2,403,600, with a constant interval of 400 between consecutive records. These values follow the time convention of the supplied dataset. To reduce the computational cost of constructing the spectrograms and training the model, a fixed stride of three is applied when selecting records. This produces 2,004 time points with a uniform interval of 1200, while retaining both the first and last recording times for the current dataset.
+
+The same sampling indices are applied to every particle and channel, ensuring that temporal order and correspondence between variables are maintained. Sampling selects existing recorded values directly, without interpolation. Each particle is therefore represented by a multichannel time-series array of size \(6 \times 2004\).
+
+Before spectrogram construction, each channel is standardized to account for differences in numerical scale. The mean and standard deviation are calculated across all 12,800 particles and all 2,004 selected time points for that channel. Values are then transformed by subtracting the channel mean and dividing by its standard deviation. All particles within a channel share a single pair of standardization parameters, rather than each particle being normalized independently.
+
+This procedure produces dimensionless standardized values while preserving relative amplitude differences between particles within the same channel. The time series in Figure~\ref{fig:time-series} use the same standardization parameters as those used for spectrogram construction. Since these parameters are based on the entire analysis dataset, this preprocessing configuration supports exploratory clustering of the supplied dataset.
+
+\subsection{Spectrogram Representation and Clustering Task}
+
+The standardized time series are converted into log-magnitude spectrograms separately for each channel. After resizing and channel-wise standardization in the spectrogram domain, the resulting arrays form the input to the convolutional autoencoder. Each channel is represented on a \(33 \times 60\) grid, giving an input tensor of size \(6 \times 33 \times 60\) for each particle.
+
+The six channels correspond to the selected variables, while the other two dimensions represent the resized frequency and time axes. Together, these dimensions define the network input grid and do not indicate the actual numbers of independent frequency bins and time windows in the original transform. Spectrogram computation uses a sampling frequency of one, with frequency expressed in cycles per sampled point. Details of the transform parameters and resizing procedure are provided in Section~\ref{sec:methodology}.
+
+The clustering task aims to partition particle trajectories into groups using these multichannel representations when no predefined class labels are available. Treating each individual trajectory as a sample and grouping them through feature extraction and clustering follows the general task formulation used in earlier PIC trajectory classification studies~\cite{markidis2020}.
+
+For the entire analysis interval, each particle is assigned a single final cluster label and does not receive separate labels for individual temporal segments. Cluster indices identify the groups formed and have no predefined class names or ordering. The convolutional autoencoder learns a low-dimensional representation, which is then used for cluster initialization and refinement. In this report, the spectrogram-based approach determines the number of clusters within the candidate range \(K=2,\ldots,12\) using an elbow criterion; the selected value, \(K=5\), is then fixed for both reference methods.
+
+\subsection{Clustering Evaluation}
+
+Because reference class labels are unavailable, clustering is evaluated through internal validation, with the silhouette score serving as the primary metric. For each sample, this score compares the average distance to other samples in its own cluster with the average distance to samples in the nearest neighboring cluster, thereby measuring within-cluster cohesion and between-cluster separation~\cite{rousseeuw1987}.
+
+Silhouette scores are computed using Euclidean distances in the learned latent space, with subsampling used to limit computational cost. Higher silhouette scores indicate more compact and separated groups under the chosen representation and distance metric. Although the score describes clustering structure, it is not interpreted as a measure of classification accuracy relative to ground-truth labels.
+
+Reconstruction errors provide additional information about the model's ability to reproduce its inputs, cluster-size distributions show how particles are allocated among the groups, and PCA and t-SNE visualizations help display the learned feature structure. Detailed evaluation settings and quantitative results are provided in Section~\ref{sec:experiments} and Section~\ref{sec:results}, respectively.

@@ -1,0 +1,25 @@
+\section{Conclusions, Limitations, and Implications}\label{sec:conclusions}
+
+\subsection{Conclusions}
+
+The study presents an unsupervised procedure that uses time--frequency representations and convolutional deep clustering to analyze multivariate particle trajectories from particle-in-cell (PIC) simulations. Extending earlier research on clustering particle trajectories, the input now includes six channels: particle position, momentum components, and local electromagnetic field components. After carrying out uniform temporal sampling and standardization, the channels are converted into spectrograms. A two-dimensional convolutional autoencoder produces low-dimensional representations, and the particle groups are determined by first using K-means initialization and then refining them with DEC.
+
+When the silhouette is used as the evaluation criterion, the spectrogram CNN + DEC method is compared with PCA + K-means and the 1D time-series CNN + DEC. All three methods use 32-dimensional representations and five clusters, and the evaluation is performed on the same sample of 10,000 particles. The silhouette scores obtained for PCA + K-means, 1D CNN + DEC, and spectrogram CNN + DEC are 0.29957, 0.79637, and 0.87985, respectively. The spectrogram-based method achieves the highest internal clustering score in its representation space among all methods investigated.
+
+The results show that spectrogram-based convolutional deep clustering is a viable method for organizing multivariate PIC particle trajectories. The procedure converts high-dimensional, multichannel particle recordings into low-dimensional representations suitable for grouping and retrieval, without requiring predefined class labels. Furthermore, the training curves, spectrogram reconstructions, latent-space projections, and cluster sizes provide additional descriptions of the model's behavior and outputs.
+
+\subsection{Limitations}
+
+The assessment is mainly based on the silhouette score. This criterion captures both cohesion within clusters and separation between clusters for a given representation and distance measure, although it does not directly show that particle groups correspond to the true categories. As each technique is evaluated within its own representation space, the comparison shows the internal clustering structure of those representations.
+
+The experiments are based on the one available PIC particle dataset. They have not been carried out under other simulation conditions, time intervals, or with different particle samples. All steps involved in data standardization, cluster initialization, and updating the DEC target distribution use the existing dataset. Therefore, the results here represent an internal evaluation using the available data and do not prove the ability to generalize to new data.
+
+Spectrogram preprocessing also involves certain compromises in representation. To create inputs of a uniform shape, we use logarithmic magnitude spectrograms along with resizing. This representation does not explicitly preserve all phase information and may lose some local details. As a result, the resulting groups depend on the chosen channels, the sampling method, and the spectrogram parameters, and therefore should not be considered the only possible way to divide particle trajectories.
+
+\subsection{Implications and Potential Applications}
+
+The study sets out a computational procedure for turning the outputs of multivariate simulations into particle groups which can then be used in further analysis. When it is impractical to examine each particle record individually, cluster labels can serve as an indexing tool for organization, enabling researchers to browse trajectories by group, draw representative samples, and compare variable distributions across groups. This organization provides a structured basis for further analysis and reduces the need to manually examine individual trajectories.
+
+Combining information on position, momentum, and the local electromagnetic field also provides a reusable method for analyzing particle data from multiple channels. A continuous processing workflow is established through uniform sampling, standardization, representation learning, and clustering evaluation. Saving the preprocessing parameters, model weights, and particle labels enables result verification and subsequent reuse.
+
+In this study, clustering organizes particle records using computational methods. The resulting groups can then serve as inputs for domain-specific downstream analyses, enabling researchers to select the particle populations they want to examine in more detail. Ultimately, the value of these groups depends on whether they support those later tasks efficiently, in addition to the value of a single clustering metric.

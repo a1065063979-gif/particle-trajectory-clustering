@@ -10,7 +10,7 @@ Research code for unsupervised clustering of PIC particle trajectories using six
 | `code/cnn1d_dec` | Time-series 1D CNN autoencoder + DEC; K=5 | `run_1d_compare.py` |
 | `code/pca_kmeans` | Flattened spectrogram + PCA (32 dimensions) + K-means; K=5 | `run_pca_kmeans.py` |
 
-This repository contains the three methods, their existing synthetic-data tests, the report figures in `figures/`, and the saved main-method outputs in `results/spectrogram_dec/`. Raw HDF5 data, trained model checkpoints, and presentation materials are not included.
+This repository contains the three methods, their existing synthetic-data tests, the report figures in `figures/`, and the saved main-method outputs in `results/spectrogram_dec/`. The combined report and presentation project, including both PDFs and LaTeX sources, is in [`report-and-presentation/`](report-and-presentation/). Raw HDF5 data and trained model checkpoints are not included.
 
 The report figures retain the author-provided filenames and versions. The main results are copied unchanged from `k_auto_spec2/k_auto_spec_report_weight_5e4__350_results`, including CSV tables, NPZ archives, PNG/PDF plots, sampling metadata, and three plotting helper scripts. Preview plots retain their original `PREVIEW` names. Report figures may differ from the corresponding experiment plots.
 

@@ -1,0 +1,95 @@
+\section{Experimental Design}\label{sec:experiments}
+
+\subsection{Objectives and General Settings}
+
+Two comparative experiments are carried out to evaluate the spectrogram-based deep clustering workflow for multivariate particle trajectories. The first uses principal component analysis (PCA) followed by K-means as a linear dimensionality reduction baseline. The second applies a one-dimensional convolutional autoencoder followed by DEC directly to multichannel time series, and this provides a reference for comparison with the time--frequency representation used by the main method.
+
+All methods use the same 12,800 particles and six input channels: position \(x\), momentum components \(p_x\) and \(p_y\), and local electromagnetic field components \(E_x\), \(E_y\), and \(B_z\). The same temporal sampling indices are used for all channels, which results in 2,004 evenly spaced samples per particle. For the time-series standardization, the mean values and standard deviations are calculated for each channel across all particles and at the chosen time points. These normalization parameters are used in all the experiments.
+
+The representation dimension used for clustering is fixed at 32 for all methods. Since the spectrogram workflow employs the elbow criterion and selects five clusters, the comparative experiments also use \(K=5\). A fixed random seed of 42 is used, and the final silhouette evaluation is performed on the same subset of 10,000 particles, aligned by particle ID.
+
+\subsection{Compared Methods}
+
+The input representations, dimensionality reduction procedures, and clustering stages are summarized in Table~\ref{tab:methods}.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Input representations and clustering procedures of the compared methods. All clustering representations have 32 dimensions.}\label{tab:methods}
+\begin{tabularx}{\linewidth}{@{}p{0.18\linewidth}Y Y Y@{}}
+\toprule
+\textbf{Method} & \textbf{Input} & \textbf{Representation construction} & \textbf{Clustering} \\
+\midrule
+PCA + K-means & Six-channel spectrograms & Flattening followed by PCA & K-means \\
+1D CNN + DEC & Six-channel standardized time series & One-dimensional convolutional autoencoder & K-means initialization followed by DEC refinement \\
+Spectrogram CNN + DEC & Six-channel spectrograms & Two-dimensional convolutional autoencoder & K-means initialization followed by DEC refinement \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\noindent\textbf{PCA + K-means.} This baseline uses the same spectrogram preprocessing as the main method, including time-series standardization, spectrogram computation, logarithmic transformation, resizing, and spectrogram standardization. Each particle is represented by a spectrogram tensor of size \(6\times33\times60\), which is flattened into an 11,880-dimensional vector.
+
+PCA reduces this vector to 32 dimensions without whitening. K-means then partitions the resulting representations into five clusters. Both PCA and K-means are fitted using all particles. K-means uses 100 initializations and a maximum of 1,000 iterations.
+
+This experiment provides a baseline that does not require neural network training. Clustering is evaluated primarily through the silhouette score in the 32-dimensional PCA space.
+
+\noindent\textbf{1D CNN + DEC.} This method directly takes standardized particle time series of size \(6\times2,004\) as input. To do this, the encoder uses four one-dimensional convolutional layers to extract temporal features and then transforms them into a 32-dimensional latent vector. The decoder then reconstructs the six-channel time series from this representation.
+
+After autoencoder pretraining, K-means initializes five cluster centers in the latent space. Then, DEC improves the representation and cluster centers through optimization, which is carried out jointly on reconstruction and clustering. The final cluster labels are derived from the soft assignments of the chosen model.
+
+This experiment provides a deep learning reference that operates directly on multichannel time series. Its convolutional depth and channel widths correspond to those of the spectrogram network, while the latent dimension and principal training settings are shared. Because the input shapes and convolutional operations differ, the two networks do not have identical parameter counts. The comparison therefore concerns the complete input representations and their corresponding network configurations.
+
+\noindent\textbf{Spectrogram CNN + DEC.} This is the study's main method. The six-channel particle time series are transformed into multichannel spectrograms, and then a two-dimensional convolutional autoencoder learns 32-dimensional representations. K-means initializes the cluster centers, and DEC then updates the network parameters and cluster centers.
+
+The preprocessing, network architecture, and joint optimization objective are described in the Methods section. The final training configuration is used for comparison with the two reference methods.
+
+\subsection{Training Settings for the Deep Models}
+
+Both convolutional models are trained in two stages: autoencoder pretraining and clustering refinement.
+
+During pretraining, 80\% of the particles are used to optimize the autoencoder, and the remaining 20\% are used to monitor reconstruction loss. Training runs for a maximum of 200 epochs and stops if the validation reconstruction loss does not improve for 15 consecutive epochs. The model weights corresponding to the lowest validation loss are restored. Both models use the Adam optimizer with a learning rate of \(10^{-3}\) and a batch size of 64.
+
+The reconstruction objective is a channel-weighted mean squared error. For the channel order \(x\), \(p_x\), \(p_y\), \(E_x\), \(E_y\), \(B_z\), the weights are
+
+\begin{equation} \boldsymbol{w}=(1,\;1,\;1,\;0.2,\;0.2,\;1). \end{equation}
+
+The squared reconstruction errors are multiplied by their channel weights, averaged over all elements in the minibatch, and divided by the mean channel weight. This maintains the reconstruction-loss definition used by the main method.
+
+During DEC refinement, the joint objective is
+
+\begin{equation} L=L_{\mathrm{recon}}+\lambda L_{\mathrm{cluster}}, \qquad \lambda=5\times10^{-4}. \end{equation}
+
+Here, \(L_{\mathrm{cluster}}\) is the KL divergence summed over all particles and clusters within the current minibatch. Both deep models use the same clustering weight and batch size, preserving the interpretation of the clustering contribution to the objective.
+
+Following the implementation of the main method, a fixed subset containing 50\% of the particles is used for gradient updates during DEC training. The target distribution is updated using the soft assignments of all particles. DEC also uses Adam with a learning rate of \(10^{-3}\), with a training budget of 350 epochs.
+
+To monitor the latent-space silhouette score during DEC training and to select the model weights for final evaluation, a fixed number of 5,000 particles is used. As a result, the final results cited refer to the model that has been selected and need not be identical to those obtained at the final training epoch.
+
+These data partitions control optimization and monitoring. Since normalization, cluster initialization, and target-distribution updates involve the full particle dataset, the reported scores constitute internal clustering evaluation on the available data.
+
+\subsection{Primary Evaluation Metric}
+
+The silhouette score is the primary clustering evaluation metric. For particle \(i\), it is defined as
+
+\begin{equation} s(i)=\frac{b(i)-a(i)} {\max\{a(i),b(i)\}}, \end{equation}
+
+where \(a(i)\) is the mean distance between particle \(i\) and the other particles in its cluster. The quantity \(b(i)\) is the smallest mean distance between particle \(i\) and the particles belonging to any other cluster. The overall score is the average over the evaluation sample:
+
+\begin{equation} S=\frac{1}{N_{\mathrm{eval}}} \sum_{i=1}^{N_{\mathrm{eval}}}s(i). \end{equation}
+
+Higher scores indicate greater within-cluster cohesion and between-cluster separation under the chosen representation and distance metric.
+
+To keep computational cost down while maintaining a consistent evaluation sample, all methods use the same 10,000 particles, selected with a fixed random seed. The Euclidean distance is used throughout, and both the within-cluster and between-cluster mean distances are computed within this sample. The evaluation spaces are:
+
+\begin{itemize}
+\item PCA + K-means: the 32-dimensional PCA representation.
+
+\item 1D CNN + DEC: the 32-dimensional latent representation of the selected time-series model.
+
+\item Spectrogram CNN + DEC: the 32-dimensional latent representation of the selected spectrogram model.
+\end{itemize}
+
+The report therefore includes the internal clustering scores within each method's own representation space, and the relevant evaluation space is specified in the results table. Classification accuracy is not given since the predefined particle-class labels are not available.
+
+\subsection{Presentation of Results}
+
+The main results are given in a table that compares the silhouette scores of the three methods, along with the representation dimension, cluster count, evaluation sample size, and measured end-to-end runtimes of the two deep workflows.

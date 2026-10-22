@@ -1,0 +1,70 @@
+\section{Architecture and Training Configuration}\label{app:implementation}
+\setcounter{table}{0}
+
+\subsection{Convolutional Autoencoder Architecture}
+
+Table~\ref{tab:architecture} provides the layer-by-layer dimensions of the spectrogram autoencoder. Dimensions exclude the batch axis.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Main components of the convolutional autoencoder. Dimensions exclude the batch axis.}\label{tab:architecture}
+\begin{tabularx}{\linewidth}{@{}p{0.24\linewidth}Y p{0.21\linewidth}@{}}
+\toprule
+\textbf{Stage} & \textbf{Operation} & \textbf{Output dimensions} \\
+\midrule
+Input & Six-channel spectrogram & \(6\times33\times60\) \\
+Encoder layer 1 & Two-dimensional convolution + ReLU & \(8\times17\times30\) \\
+Encoder layer 2 & Two-dimensional convolution + ReLU & \(16\times9\times15\) \\
+Encoder layer 3 & Two-dimensional convolution + ReLU & \(32\times5\times8\) \\
+Encoder layer 4 & Two-dimensional convolution + ReLU & \(64\times3\times4\) \\
+Feature compression & Flattening + linear fully connected layer & 32 \\
+Decoder input & Linear fully connected layer + reshaping & \(64\times3\times4\) \\
+Decoder & Four transposed convolutional layers & \(6\times34\times50\) \\
+Output resizing & Bilinear interpolation & \(6\times33\times60\) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\clearpage
+\subsection{Workflow and Optimization Settings}
+
+Table~\ref{tab:settings} consolidates the preprocessing, pretraining, initialization, refinement, and model-selection settings of the final workflow.
+
+\begingroup\small
+\begin{longtable}{@{}p{0.54\linewidth}p{0.4\linewidth}@{}}
+\caption{Main settings of the final analysis workflow.}\label{tab:settings}\\
+\toprule
+\textbf{Parameter} & \textbf{Setting} \\
+\midrule
+\endfirsthead
+\multicolumn{2}{l}{\small\itshape Table~\thetable{} (continued)}\\
+\toprule
+\textbf{Parameter} & \textbf{Setting} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{2}{r}{\small Continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Time-series dimensions per particle & \(6\times2004\) \\
+Spectrogram window length / hop size & 256 / 128 \\
+Network input dimensions & \(6\times33\times60\) \\
+Latent dimensionality & 32 \\
+Autoencoder training / validation split & 80\% / 20\% \\
+Maximum pretraining epochs / early-stopping patience & 200 / 15 \\
+Pretraining and refinement optimizer & Adam \\
+Pretraining and refinement learning rate & \(10^{-3}\) \\
+Batch size & 64 \\
+Candidate cluster counts & 2--12 \\
+K-means initializations / maximum iterations & 100 / 1,000 \\
+Cluster-count selection & Elbow of the normalized log-inertia curve \\
+Particles used for refinement gradient updates & 6,400 \\
+Particles used to construct target distributions & 12,800 \\
+Clustering loss coefficient & \(5\times10^{-4}\) \\
+KL reduction & Sum over minibatch particles and clusters \\
+Refinement epochs & 350 \\
+Monitoring / final silhouette sample size & 5,000 / 10,000 \\
+Model-selection criterion & Highest monitoring silhouette score \\
+\end{longtable}
+\endgroup

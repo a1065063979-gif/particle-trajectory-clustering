@@ -1,0 +1,119 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[margin=27mm,headheight=15pt]{geometry}
+\usepackage{amsmath}
+\usepackage{newtxtext,newtxmath}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs,array,tabularx,longtable}
+\usepackage{caption,subcaption}
+\usepackage{setspace}
+\usepackage{enumitem}
+\usepackage[section]{placeins}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xurl}
+\usepackage{hyperref}
+
+\definecolor{thesisblue}{HTML}{193952}
+\definecolor{thesisgray}{HTML}{657381}
+\hypersetup{colorlinks=true,linkcolor=thesisblue,citecolor=thesisblue,
+  urlcolor=thesisblue,pdftitle={Unsupervised Deep Clustering of Multivariate Particle Trajectories in PIC Simulations}}
+\urlstyle{same}
+\setstretch{1.12}
+\setlength{\parindent}{1.25em}
+\setlength{\parskip}{0.3em}
+\setlength{\emergencystretch}{2em}
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.2}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\captionsetup{font=small,labelfont=bf,skip=8pt}
+\captionsetup[subfigure]{font=small,justification=centering}
+\setlist[itemize]{nosep,topsep=0.4em,leftmargin=1.5em}
+\titleformat{\section}{\Large\bfseries\color{thesisblue}}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.7em}{}
+\titlespacing*{\section}{0pt}{1.2em}{0.8em}
+\titlespacing*{\subsection}{0pt}{1em}{0.4em}
+\numberwithin{equation}{section}
+\setcounter{tocdepth}{2}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.65}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Multivariate PIC Trajectory Clustering}}
+\fancyhead[R]{\small Internship report}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\newcommand{\placeholder}[2][38mm]{%
+  \begingroup\setlength{\fboxsep}{7pt}%
+  \fcolorbox{thesisgray}{white}{%
+    \parbox[c][#1][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{%
+      \centering\small\color{thesisgray}#2}}%
+  \endgroup}
+\newcommand{\figureasset}[3][0.95\linewidth]{%
+  \IfFileExists{#2}{\includegraphics[width=#1,height=0.7\textheight,keepaspectratio]{#2}}%
+    {\placeholder[55mm]{#3\\[0.5em]Image to be supplied}}}
+
+\input{frontmatter/metadata}
+\hypersetup{pdfauthor={\studentname},pdfsubject={M2 Internship report}}
+
+\begin{document}
+\hypersetup{pageanchor=false}
+\input{frontmatter/cover}
+\hypersetup{pageanchor=true}
+\pagenumbering{roman}
+\input{frontmatter/abstract}
+\clearpage
+\begingroup
+\small\setstretch{1.0}
+\setlength{\parskip}{0pt}
+\tableofcontents
+\endgroup
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{List of Figures}
+\listoffigures
+\bigskip
+\phantomsection
+\addcontentsline{toc}{section}{List of Tables}
+\listoftables
+\clearpage
+\pagenumbering{arabic}
+
+\input{sections/01-introduction}
+\clearpage
+\input{sections/02-data}
+\clearpage
+\input{sections/03-methodology}
+\clearpage
+\input{sections/04-experimental-design}
+\clearpage
+\input{sections/05-results}
+\clearpage
+\input{sections/06-conclusions}
+\input{sections/07-ai-assistance}
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+\clearpage
+\appendix
+\renewcommand{\thetable}{\thesection.\arabic{table}}
+\input{appendices/implementation-details}
+\clearpage
+\input{appendices/cluster-statistics}
+\end{document}
