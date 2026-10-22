@@ -1,0 +1,33 @@
+{
+  "sampling_method": "fixed_stride_no_interpolation",
+  "original_time_points": 6010,
+  "sampled_time_points": 2004,
+  "target_maximum_time_points": 2048,
+  "time_stride": 3,
+  "original_time_step": 400.0,
+  "sampled_time_step": 1200.0,
+  "original_first_time": 0.0,
+  "original_last_time": 2403600.0,
+  "sampled_first_time": 0.0,
+  "sampled_last_time": 2403600.0,
+  "trailing_records_omitted": 0,
+  "particle_count": 12800,
+  "figure2_particle_indices": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "figure2_unique_ids": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "normalization_scope": "all_particles_and_selected_times_per_channel",
+  "spectrogram_fs": 1.0,
+  "frequency_units": "cycles_per_sample",
+  "anti_alias_filter_applied": false
+}

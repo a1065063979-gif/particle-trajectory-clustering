@@ -181,7 +181,8 @@ cython_debug/
 .cursorindexingignore
 # Local research inputs and generated experiment artifacts
 /data/
-/results/
+/results/*
+!/results/spectrogram_dec/
 /code/**/one_d_results/
 /code/**/pca_kmeans_results/
 /code/**/timeseries_cache/

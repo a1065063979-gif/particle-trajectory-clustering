@@ -10,7 +10,9 @@ Research code for unsupervised clustering of PIC particle trajectories using six
 | `code/cnn1d_dec` | Time-series 1D CNN autoencoder + DEC; K=5 | `run_1d_compare.py` |
 | `code/pca_kmeans` | Flattened spectrogram + PCA (32 dimensions) + K-means; K=5 | `run_pca_kmeans.py` |
 
-This code release contains the three methods and their existing synthetic-data tests. Research data, trained models, result archives, figures, and presentation materials are not included in this commit.
+This repository contains the three methods, their existing synthetic-data tests, the report figures in `figures/`, and the saved main-method outputs in `results/spectrogram_dec/`. Raw HDF5 data, trained model checkpoints, and presentation materials are not included.
+
+The report figures retain the author-provided filenames and versions. The main results are copied unchanged from `k_auto_spec2/k_auto_spec_report_weight_5e4__350_results`, including CSV tables, NPZ archives, PNG/PDF plots, sampling metadata, and three plotting helper scripts. Preview plots retain their original `PREVIEW` names. Report figures may differ from the corresponding experiment plots.
 
 ## Installation
 
@@ -26,7 +28,7 @@ For GPU training, install a PyTorch build appropriate for the computing environm
 
 Place the original HDF5 file at `data/particle_data.h5`, or provide its path using the options below. Required datasets are `Times` (time vector), `unique_Ids` (integer particle IDs), and the six channels, each shaped `(time, particle)`. Time records must be increasing and equally spaced. Data are supplied separately.
 
-Run commands from the repository root. First run the spectrogram method, then run the two comparisons against its saved results. Alternatively, place the corresponding existing main-experiment NPZ files in `results/spectrogram_dec/`.
+Run commands from the repository root. First run the spectrogram method, then run the two comparisons against its saved results. The saved main-experiment NPZ files are already provided in `results/spectrogram_dec/`; the comparison scripts still require the original HDF5 data.
 
 ### Spectrogram CNN + DEC
 
@@ -47,7 +49,7 @@ $env:MAX_DEC_EPOCHS = '350'
 python code/spectrogram_dec/h5_spectrogram_cnn_dec_k_auto_without_pz_report_weight.py
 ```
 
-`OUTPUT_DIR` overrides the default `results/spectrogram_dec/`. Use a fresh output directory for a new run: the main script may overwrite files in an existing directory. `PREPROCESS_ONLY=1` generates the preprocessing diagnostics without training; unset it or set it to `0` for a full run.
+`OUTPUT_DIR` overrides the default `results/spectrogram_dec/`. Set `OUTPUT_DIR` to a fresh directory (for example, `results/spectrogram_dec_new_run/`) when retraining, to preserve the archived results: the main script may overwrite files in an existing directory. `PREPROCESS_ONLY=1` generates the preprocessing diagnostics without training; unset it or set it to `0` for a full run.
 
 Fixed-stride sampling uses `TARGET_TIME_POINTS=2048` as an upper bound (6,010 original records become 2,004 records with stride 3). It does not add an anti-aliasing filter. Spectrograms use a 256-point window, hop 128, log magnitude, and resizing to `33 x 60` per channel. Frequency uses `fs=1`, not physical Hz. The latent dimension is 32 and automatic K selection searches 2 through 12.
 
