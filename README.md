@@ -1,6 +1,33 @@
-# Multivariate particle trajectory clustering
+# Unsupervised Deep Clustering of Multivariate Particle Trajectories in PIC Simulations
 
-Research code for unsupervised clustering of PIC particle trajectories using six channels: `x`, `px`, `py`, `Ex`, `Ey`, and `Bz` (`pz` is excluded).
+Internship research project by **Linshuo CHEN**, Sorbonne Université, supervised by **Andrea CIARDI**.
+
+This project investigates unsupervised clustering of particle trajectories from particle-in-cell (PIC) simulations. It uses six channels—`x`, `px`, `py`, `Ex`, `Ey`, and `Bz`—and compares a spectrogram CNN autoencoder + deep embedded clustering (DEC) workflow with 1D CNN + DEC and PCA + K-means. The focus is on data representation, clustering methodology, and internal evaluation. `pz` is excluded.
+
+## Report and presentation
+
+- [Internship report (PDF)](report-and-presentation/Rapport%20de%20stage_LisnhuoCHEN.pdf)
+- [Defense presentation (PDF)](report-and-presentation/defense-presentation.pdf)
+- [Combined LaTeX project and compilation instructions](report-and-presentation/README.md)
+
+The report and presentation share one source directory, preserving the original chapter files, bibliography, images, and relative paths. The entry points are `report.tex` and `defense-presentation.tex`. Supplied PDFs are included as exported; they were not rebuilt during repository preparation.
+
+## Repository contents
+
+| Location | Contents |
+| --- | --- |
+| [`code/spectrogram_dec/`](code/spectrogram_dec/) | Main spectrogram CNN + DEC method and preprocessing tests |
+| [`code/cnn1d_dec/`](code/cnn1d_dec/) | 1D CNN + DEC comparison and tests |
+| [`code/pca_kmeans/`](code/pca_kmeans/) | PCA + K-means comparison and tests |
+| [`figures/`](figures/) | 13 figures selected for the report |
+| [`results/spectrogram_dec/`](results/spectrogram_dec/) | 38 archived main-method output files and plotting helpers |
+| [`report-and-presentation/`](report-and-presentation/) | Report and defense PDFs, LaTeX sources, and shared assets |
+| [`requirements.txt`](requirements.txt) | Python dependencies |
+| [`VALIDATION.md`](VALIDATION.md) | Local test results and validation environment |
+
+The archived results include CSV tables and training history, initial and final clustering NPZ files, PNG/PDF plots, and sampling metadata. The stored run records a clustering-loss weight of `5e-4`, 350 DEC epochs, and five selected clusters. Report figures retain their final supplied versions; they may differ from the experiment plots. Files marked `PREVIEW` are preserved as preview outputs.
+
+Raw HDF5 input data, trained model checkpoints, and the comparison experiments' output archives are **not included**. Reading the report or inspecting the saved main-method results does not require running the code.
 
 ## Methods
 
@@ -9,10 +36,6 @@ Research code for unsupervised clustering of PIC particle trajectories using six
 | `code/spectrogram_dec` | Spectrogram CNN autoencoder + DEC; automatic K selection | `h5_spectrogram_cnn_dec_k_auto_without_pz_report_weight.py` |
 | `code/cnn1d_dec` | Time-series 1D CNN autoencoder + DEC; K=5 | `run_1d_compare.py` |
 | `code/pca_kmeans` | Flattened spectrogram + PCA (32 dimensions) + K-means; K=5 | `run_pca_kmeans.py` |
-
-This repository contains the three methods, their existing synthetic-data tests, the report figures in `figures/`, and the saved main-method outputs in `results/spectrogram_dec/`. The combined report and presentation project, including both PDFs and LaTeX sources, is in [`report-and-presentation/`](report-and-presentation/). Raw HDF5 data and trained model checkpoints are not included.
-
-The report figures retain the author-provided filenames and versions. The main results are copied unchanged from `k_auto_spec2/k_auto_spec_report_weight_5e4__350_results`, including CSV tables, NPZ archives, PNG/PDF plots, sampling metadata, and three plotting helper scripts. Preview plots retain their original `PREVIEW` names. Report figures may differ from the corresponding experiment plots.
 
 ## Installation
 
@@ -28,15 +51,11 @@ For GPU training, install a PyTorch build appropriate for the computing environm
 
 Place the original HDF5 file at `data/particle_data.h5`, or provide its path using the options below. Required datasets are `Times` (time vector), `unique_Ids` (integer particle IDs), and the six channels, each shaped `(time, particle)`. Time records must be increasing and equally spaced. Data are supplied separately.
 
-Run commands from the repository root. First run the spectrogram method, then run the two comparisons against its saved results. The saved main-experiment NPZ files are already provided in `results/spectrogram_dec/`; the comparison scripts still require the original HDF5 data.
+Run commands from the repository root. The two comparisons can use the archived main-experiment NPZ files already provided in `results/spectrogram_dec/`, together with the original HDF5 data. To create an entirely new experiment, run the spectrogram method first and point both comparisons at its new output directory using `--results-dir`.
 
 ### Spectrogram CNN + DEC
 
-```bash
-python code/spectrogram_dec/h5_spectrogram_cnn_dec_k_auto_without_pz_report_weight.py
-```
-
-The defaults now match the author's specified run: `LAMBDA_CLUSTER=5e-4` and `MAX_DEC_EPOCHS=350`. AE pretraining remains at a maximum of 200 epochs with its original stopping rule. DEC runs 350 epochs and restores the model selected by the original silhouette rule; the selected model is not necessarily epoch 350.
+The default configuration uses `LAMBDA_CLUSTER=5e-4` and `MAX_DEC_EPOCHS=350`. AE pretraining remains at a maximum of 200 epochs with its original stopping rule. DEC runs 350 epochs and restores the model selected by the original silhouette rule; the selected model is not necessarily epoch 350.
 
 The objective is channel-weighted reconstruction loss plus `5e-4 * KL_sum`, where KL is summed over the current minibatch and clusters. Batch size remains 64. Other model and optimization logic is preserved from the source script.
 
@@ -44,8 +63,19 @@ The main script accepts environment variables. For example, in PowerShell:
 
 ```powershell
 $env:H5_PATH = 'D:/path/to/particle_data.h5'
+$env:OUTPUT_DIR = 'results/spectrogram_dec_new_run'
 $env:LAMBDA_CLUSTER = '5e-4'
 $env:MAX_DEC_EPOCHS = '350'
+$env:PREPROCESS_ONLY = '0'
+python code/spectrogram_dec/h5_spectrogram_cnn_dec_k_auto_without_pz_report_weight.py
+```
+
+Linux / Bash:
+
+```bash
+H5_PATH='/path/to/particle_data.h5' \
+OUTPUT_DIR='results/spectrogram_dec_new_run' \
+LAMBDA_CLUSTER=5e-4 MAX_DEC_EPOCHS=350 PREPROCESS_ONLY=0 \
 python code/spectrogram_dec/h5_spectrogram_cnn_dec_k_auto_without_pz_report_weight.py
 ```
 
@@ -86,3 +116,5 @@ python -m unittest discover -s code/pca_kmeans -p "test_*.py" -v
 ```
 
 Tests use temporary synthetic data. They cover preprocessing and irregular-time rejection, 1D network dimensions and loss reductions, short training and deterministic resume, particle-ID alignment, and PCA preprocessing/cache consistency. They do not reproduce the full research training run.
+
+All eight tests passed without skips during local validation on 2026-10-22. See [VALIDATION.md](VALIDATION.md) for the environment and scope. LaTeX file references were checked, but local document compilation was not performed because a LaTeX compiler was unavailable.
